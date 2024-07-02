@@ -58,68 +58,13 @@ def generate(args):
         args_copy.num_expected = args.images_per_class
 
         # Generate images for this class
+        # Note: We're passing 0 for rank and 1 for world_size as we're not using DDP
         generate_with_net(args_copy, model.module, device, 0, 1, pbar=class_pbar)
 
         torch.cuda.empty_cache()
 
 if __name__ == '__main__':
     parser = ArgumentParser('Sample from a trained model')
-    # MIT License
-
-# Copyright (c) [2023] [Anima-Lab]
-
-
-from argparse import ArgumentParser
-import os
-import json
-from omegaconf import OmegaConf
-
-import torch
-from models.maskdit import Precond_models
-
-from sample import generate_with_net
-from utils import parse_float_none, parse_int_list, init_processes
-
-
-def generate(args):
-    rank = args.global_rank
-    size = args.global_size
-    config = OmegaConf.load(args.config)
-    label_dict = json.load(open(args.label_dict, 'r'))
-    class_label = label_dict[str(args.class_idx)][1]
-    print(f'start sampling class {class_label}...')
-    device = torch.device('cuda')
-    # setup directory
-    sample_dir = os.path.join(args.results_dir, class_label)
-    os.makedirs(sample_dir, exist_ok=True)
-    args.outdir = sample_dir
-    # setup model
-    model = Precond_models[config.model.precond](
-        img_resolution=config.model.in_size,
-        img_channels=config.model.in_channels,
-        num_classes=config.model.num_classes,
-        model_type=config.model.model_type,
-        use_decoder=config.model.use_decoder,
-        mae_loss_coef=config.model.mae_loss_coef,
-        pad_cls_token=config.model.pad_cls_token,
-        use_encoder_feat=config.model.self_cond,
-    ).to(device)
-
-    model.eval()
-    print(f"{config.model.model_type} ((use_decoder: {config.model.use_decoder})) Model Parameters: {sum(p.numel() for p in model.parameters()):,}")
-    print(f'extras: {model.model.extras}, cls_token: {model.model.cls_token}')
-
-    model = torch.compile(model)
-    ckpt = torch.load(args.ckpt_path, map_location=device)
-    model.load_state_dict(ckpt['ema'])
-    generate_with_net(args, model, device, rank, size)
-
-    print(f'sampling class {class_label} done!')
-
-
-if __name__ == '__main__':
-    parser = ArgumentParser('Sample from a trained model')
-    # basic config
     parser.add_argument('--config', type=str, required=True, help='path to config file')
     parser.add_argument('--label_dict', type=str, default='assets/imagenet_label.json', help='path to label dict')
     parser.add_argument("--results_dir", type=str, default="samples", help='path to save samples')
@@ -150,7 +95,8 @@ if __name__ == '__main__':
     parser.add_argument('--node_rank', type=int, default=0, help='The index of node.')
     parser.add_argument('--local_rank', type=int, default=0, help='rank of process in the node')
     parser.add_argument('--master_address', type=str, default='localhost', help='address for master')
-    parser.add_argument('--master_port', type=str, default='12355', help='port for master')
+
+    # Add new argument for images per class
     parser.add_argument('--images_per_class', type=int, default=80, help='Number of images to generate per class')
 
     args = parser.parse_args()
