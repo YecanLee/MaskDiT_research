@@ -102,7 +102,6 @@ if __name__ == '__main__':
 
     # ddp 
     parser.add_argument('--num_proc_node', type=int, default=1, help='The number of nodes in multi node env.')
-    parser.add_argument('--num_process_per_node', type=int, default=1, help='number of gpus')
     parser.add_argument('--node_rank', type=int, default=0, help='The index of node.')
     parser.add_argument('--local_rank', type=int, default=0, help='rank of process in the node')
     parser.add_argument('--master_address', type=str, default='localhost', help='address for master')
