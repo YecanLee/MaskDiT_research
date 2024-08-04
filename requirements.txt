@@ -1,0 +1,11 @@
+einops 
+lmdb 
+omegaconf 
+wandb 
+tqdm 
+pyyaml 
+accelerate
+timm 
+webdataset
+diffusers["torch"] 
+transformers
