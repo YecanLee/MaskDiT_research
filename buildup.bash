@@ -7,3 +7,4 @@ wget https://hzpublic-hub.s3.us-west-2.amazonaws.com/maskdit/checkpoints/imagene
 python3 download_assets.py --name vae --dest assets/stable_diffusion
 
 bash scripts/download_assets.sh
+

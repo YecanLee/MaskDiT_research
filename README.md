@@ -22,6 +22,12 @@ models without sacrificing the generative performance.*
 <img src="assets/figs/repo_head.png" alt="Architecture" width="900" height="500" style="display: block;"/>
 </div>
 
+## TL;DR, One Step Solution for 50K Images Fast Inference
+please run the folliwing command to generate 50k images for FID score calculation, this works mainly for research purpose.
+```shell
+bash buildup.bash
+```
+
 ## Requirements
 
 - Training MaskDiT on ImageNet256x256 takes around 260 hours with 8 A100 GPUs to perform 2M updates with a batch size of
@@ -53,11 +59,20 @@ We provide pretrained models of MaskDiT for ImageNet256 and ImageNet512 in the f
 | No       | 512x512    | 10.79 | [imagenet512-conditional.pt](https://hzpublic-hub.s3.us-west-2.amazonaws.com/maskdit/checkpoints/1050000.pt)                                 |                                                                                       |
 ## Generate from pretrained models
 
-To generate samples from provided checkpoints, run
+To generate samples from provided checkpoints by using original repo's method, run
 
 ```bash
 python3 generate.py --config configs/test/maskdit-512.yaml --ckpt_path [path to checkpoints] --class_idx [class index from 0-999] --cfg_scale [guidance scale]
 ```
+
+The upper method will __generate one single image based on the `config` and `class_idx` flag.__
+
+To generate a desired sample number for each class by using our customized method, run
+
+```bash
+python generate_single_gpu.py --config configs/test/maskdit-256.yaml --ckpt_path [path to checkpoints] --cfg_scale [guidance scale] --num_images_per_class [images_per_class]
+```
+You can also specify the `--tf32` flag to accelerate the generation process.
 
 <img src="assets/figs/12samples_compressed.png" title="Generated samples from MaskDiT 256x256." width="850" style="display: block; margin: 0 auto;"/>
 <p align='center'> Generated samples from MaskDiT 256x256. Upper panel: without CFG. Lower panel: with CFG (scale=1.5).
@@ -68,10 +83,13 @@ python3 generate.py --config configs/test/maskdit-512.yaml --ckpt_path [path to 
 <p\>
 
 ## Prepare dataset for generating images
+### THIS ERROR HAS BEEN FIXED BY MY REPO.
 There is always an error when I tried to run the bash file, after I checked the source codes I think I found the error.
 Those two lines of the codes will always cause an error when I tried to run them.
+```shell
 `python3 download_assets.py --name imagenet256-latent-lmdb --dest ../data/imagenet256`
 `python3 download_assets.py --name imagenet512-latent-lmdb --dest ../data/imagenet512`
+```
 
 In order to solve the error, please run the following codes:
 `python3 download_assets.py --name vae --dest assets/stable_diffusion` \
